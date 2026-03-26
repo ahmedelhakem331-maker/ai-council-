@@ -1,5 +1,6 @@
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   title: 'AI Council — Five Minds. One Vision.',
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
             <main>{children}</main>
           </div>
         </div>
+        <Analytics />
       </body>
     </html>
   );
