@@ -25,6 +25,11 @@ export function LanguageProvider({ children }) {
     // Apply RTL and Lang attribute on language change
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
+    if (language === 'ar') {
+      document.body.classList.add('rtl');
+    } else {
+      document.body.classList.remove('rtl');
+    }
   }, [language]);
 
   const value = {
@@ -57,6 +62,22 @@ export const translations = {
     history: 'History',
     startCouncil: 'Start Council',
     aiCouncil: 'AI Council',
+
+    // Dashboard
+    dashboardTitle: 'The Council Awaits',
+    dashboardSubtitle: 'Submit your idea and watch five AI experts refine it into actionable brilliance.',
+    inputLabel: "💡 What's your idea?",
+    inputPlaceholder: 'e.g., A mobile app that helps people learn cooking through AR...',
+    buttonConvene: 'Convene Council',
+    buttonInSession: 'Council in Session...',
+    sessionComplete: '✅ Council session complete',
+    copySummary: 'Copy Summary',
+    exportTxt: 'Export .txt',
+    exportPdf: 'Export PDF',
+    newSession: 'New Session',
+    chamberReady: 'The council chamber is ready',
+    chamberDesc: 'Enter an idea above and convene the council. Five AI agents will analyze, enhance, critique, and synthesize your concept.',
+    copied: 'Copied!',
 
     // Hero
     badgeText: 'Powered by Multi-Agent AI',
@@ -122,6 +143,18 @@ export const translations = {
     entFeat5: 'Dedicated support',
     entFeat6: 'Custom integrations',
 
+    // Agents
+    nova: 'Nova',
+    pixel: 'Pixel',
+    cipher: 'Cipher',
+    vector: 'Vector',
+    apex: 'Apex',
+    novaRole: 'Idea Generator',
+    pixelRole: 'Creative Enhancer',
+    cipherRole: 'Critical Analyst',
+    vectorRole: 'Business Strategist',
+    apexRole: 'Chairman',
+
     // Footer
     footerCopy: '© 2026 AI Council. Five Minds. One Vision.',
     privacy: 'Privacy',
@@ -133,8 +166,24 @@ export const translations = {
     home: 'الرئيسية',
     council: 'المجلس',
     history: 'السجل',
-    startCouncil: 'ابدأ المجلس الآن',
+    startCouncil: 'ابدأ المجلس',
     aiCouncil: 'مجلس الذكاء الاصطناعي',
+
+    // Dashboard
+    dashboardTitle: 'المجلس في انتظارك',
+    dashboardSubtitle: 'أرسل فكرتك وشاهد خمسة خبراء من الذكاء الاصطناعي يصيغونها في شكل خطة عمل عبقرية.',
+    inputLabel: '💡 ما هي فكرتك؟',
+    inputPlaceholder: 'مثلاً: تطبيق هاتف يساعد الناس على تعلم الطبخ...',
+    buttonConvene: 'عقد المجلس',
+    buttonInSession: 'المجلس في انعقاد...',
+    sessionComplete: '✅ اكتملت جلسة المجلس',
+    copySummary: 'نسخ الملخص',
+    exportTxt: 'تصدير .txt',
+    exportPdf: 'تصدير PDF',
+    newSession: 'جلسة جديدة',
+    chamberReady: 'قاعة المجلس جاهزة',
+    chamberDesc: 'أدخل فكرة أعلاه لعقد المجلس. سيقوم خمسة وكلاء ذكاء اصطناعي بتحليل فكرتك وتحسينها ونقدها وتجميعها.',
+    copied: 'تم النسخ!',
 
     // Hero
     badgeText: 'مدعوم بالذكاء الاصطناعي متعدد الوكلاء',
@@ -199,6 +248,18 @@ export const translations = {
     entFeat4: 'دخول موحد وتحكم الإدارة',
     entFeat5: 'دعم مخصص',
     entFeat6: 'تكامل مخصص',
+
+    // Agents
+    nova: 'نوفا',
+    pixel: 'بيكسل',
+    cipher: 'سايفر',
+    vector: 'فيكتور',
+    apex: 'أبيكس',
+    novaRole: 'مولد الأفكار',
+    pixelRole: 'محسن إبداعي',
+    cipherRole: 'محلل نقدي',
+    vectorRole: 'خبير استراتيجي',
+    apexRole: 'رئيس المجلس',
 
     // Footer
     footerCopy: '© 2026 مجلس الذكاء الاصطناعي. خمس عقول. رؤية واحدة.',
