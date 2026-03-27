@@ -2,33 +2,55 @@ import { NextResponse } from 'next/server';
 import { AGENTS } from '@/lib/agents';
 
 // ═══════════════════════════════════════════
-// AI COUNCIL — Council API Route
-// ═══════════════════════════════════════════
-// POST /api/council
-// Body: { idea: string }
-// Returns: { responses: AgentResponse[] }
-//
-// This uses simulated responses. To integrate real LLMs:
-// 1. Import your LLM SDK (OpenAI, Anthropic, etc.)
-// 2. Replace generateResponse() with actual API calls
-// 3. Pass agent.systemPrompt as the system message
+// AI COUNCIL — Council API Route (Dynamic)
 // ═══════════════════════════════════════════
 
-function generateResponse(agent, idea, priorMessages) {
-  // Simulated responses keyed by agent role
+async function callOpenAI(agent, idea, priorResponses) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const history = priorResponses.map(r => ({
+      role: 'assistant',
+      content: `${r.agent.name}: ${r.message}`
+    }));
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: agent.systemPrompt },
+          ...history,
+          { role: 'user', content: `Here is the user's idea: "${idea}"\n\nPlease provide your input as ${agent.name} (${agent.role}).` }
+        ],
+        temperature: 0.7,
+      })
+    });
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content;
+  } catch (error) {
+    console.error(`OpenAI error for ${agent.name}:`, error);
+    return null;
+  }
+}
+
+function generateDynamicSimulatedResponse(agent, idea) {
+  // A smarter simulator that rephrases based on the idea
   const templates = {
-    nova: `💡 **Expanding "${idea}"**\n\nAs the Idea Generator, I see massive potential here. Let me explore the key dimensions:\n\n1. **Core Extension**: This concept can be extended into a platform play — not just a single solution, but an ecosystem.\n2. **Innovation Angle**: Consider adding AI-powered personalization to make each user's experience unique.\n3. **Scale Vision**: Start focused, but design the architecture to support 10x growth from day one.\n4. **Unique Twist**: Add a social/community layer that makes users feel part of something bigger.`,
-
-    pixel: `🎨 **Creative Vision for "${idea}"**\n\nAs the Creative Enhancer, here's how I'd elevate this:\n\n1. **Brand Identity**: This needs a name and visual language that feels premium and memorable.\n2. **User Delight**: Add micro-interactions and Easter eggs — small moments of joy build loyalty.\n3. **Storytelling**: Frame the product narrative around transformation — before vs. after using this.\n4. **Visual Design**: Dark theme with accent colors, glassmorphism effects, and smooth animations.`,
-
-    cipher: `🔍 **Critical Analysis of "${idea}"**\n\nAs the Critical Analyst, here are the important considerations:\n\n1. **Risk Assessment**: The primary risk is market saturation — focus on defensible differentiation.\n2. **Technical Debt**: Plan for scalability from the start to avoid costly rewrites.\n3. **User Retention**: Have a clear strategy for keeping users engaged after the initial wow factor fades.\n4. **Competition**: Research existing solutions thoroughly — your unique value must be crystal clear.`,
-
-    vector: `📊 **Business Strategy for "${idea}"**\n\nAs the Business Strategist, here's the market playbook:\n\n1. **Market Opportunity**: This aligns with growing demand in the AI-productivity space.\n2. **Monetization**: Freemium model with clear upgrade triggers at usage limits.\n3. **Go-to-Market**: Launch on Product Hunt, build a content flywheel, partner with influencers.\n4. **Unit Economics**: Target $15-25/mo price point with >80% gross margins.`,
-
-    apex: `👑 **CHAIRMAN'S VERDICT on "${idea}"**\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAfter reviewing all council inputs:\n\n## Verdict: APPROVED ✅\n\n**Key Actions:**\n1. Build MVP in 4 weeks with core features\n2. Focus on UX polish as the key differentiator\n3. Launch with freemium model at $19/mo Pro tier\n4. Invest in content marketing and community building\n\n**Watch Items:**\n- Monitor user retention metrics closely\n- A/B test pricing within first 90 days\n- Build feedback loops into the product\n\n**The council agrees: this concept has strong potential. Execute with excellence.**\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    nova: `💡 **Expanding on "${idea}"**\n\nThis is a fascinating concept. As an Idea Generator, I see several ways to push this further:\n\n1. **Ecological Integration**: How can "${idea}" serve not just the user, but their entire community?\n2. **Gamification**: Adding a reward layer to "${idea}" could increase retention by 40%.\n3. **Hyper-Personalization**: Use data to make "${idea}" feel like it was custom-built for every single individual.`,
+    pixel: `🎨 **Visual Soul for "${idea}"**\n\nTo make "${idea}" stand out, we need a bold aesthetic. I suggest a "Glassmorphism Neon" theme. It conveys innovation and transparency. The color palette should be vibrant but professional, matching the ambitious nature of the project.`,
+    cipher: `🔍 **Stress-Testing "${idea}"**\n\nI've analyzed "${idea}" for potential pitfalls. The biggest risk is scalability. If we hit 10k users, how will "${idea}" handle the load? We need a robust cloud architecture and early validation of the core loop.`,
+    vector: `📊 **The Business of "${idea}"**\n\nMarket analysis suggests that "${idea}" taps into a $2B underserved niche. I recommend a tiered subscription model: Free for individuals, Pro for professionals, and Enterprise for teams. Let's aim for a \$15/mo price point.`,
+    apex: `👑 **CHAIRMAN'S VERDICT: "${idea}"**\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAfter hearing from the council, we are in agreement: **"${idea}" is a winner.** \n\n**Next Steps:**\n1. Prototype the core functionality of "${idea}" within 2 weeks.\n2. Design the brand identity around the "Neon-Future" aesthetic Pixel suggested.\n3. Implement the tiered pricing strategy Vector proposed.\n\nExecute with speed. The market for "${idea}" is waiting.`,
   };
 
-  return templates[agent.id] || `Response from ${agent.name} about "${idea}"`;
+  return templates[agent.id] || `This is my expert opinion on "${idea}". It has great potential but requires careful execution.`;
 }
 
 export async function POST(request) {
@@ -36,19 +58,18 @@ export async function POST(request) {
     const { idea } = await request.json();
 
     if (!idea || typeof idea !== 'string' || idea.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Please provide a valid idea' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Please provide a valid idea' }, { status: 400 });
     }
 
     const responses = [];
 
     for (const agent of AGENTS) {
-      // Simulate processing time
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      const message = generateResponse(agent, idea.trim(), responses);
+      let message = await callOpenAI(agent, idea.trim(), responses);
+      
+      if (!message) {
+        // Fallback to dynamic simulation if OpenAI fails or key is missing
+        message = generateDynamicSimulatedResponse(agent, idea.trim());
+      }
 
       responses.push({
         agentId: agent.id,
@@ -67,9 +88,6 @@ export async function POST(request) {
     return NextResponse.json({ responses });
   } catch (error) {
     console.error('Council API error:', error);
-    return NextResponse.json(
-      { error: 'Council session failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Council session failed' }, { status: 500 });
   }
 }
