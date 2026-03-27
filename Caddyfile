@@ -1,0 +1,64 @@
+# Caddyfile - Reverse Proxy Configuration for AI Council
+
+# Development environment (localhost)
+localhost:80 {
+    # Frontend reverse proxy
+    route /app* {
+        reverse_proxy frontend:3000
+    }
+
+    # WebSocket endpoint to backend
+    route /ws* {
+        reverse_proxy backend:8000 {
+            header_uri X-Forwarded-Proto https
+            header_uri X-Forwarded-Host {host}
+        }
+    }
+
+    # Backend API routes
+    route /api* {
+        reverse_proxy backend:8000 {
+            header_uri X-Forwarded-Proto https
+            header_uri X-Forwarded-Host {host}
+        }
+    }
+
+    # Health check endpoints
+    route /health* {
+        reverse_proxy backend:8000
+    }
+
+    # Default to frontend
+    reverse_proxy frontend:3000
+}
+
+# Production environment (replace yourdomain.com with actual domain)
+# yourdomain.com {
+#     # SSL automatically handled by Caddy
+#
+#     # WebSocket support with proper headers
+#     route /ws* {
+#         reverse_proxy backend:8000 {
+#             header_uri X-Forwarded-Proto https
+#             header_uri X-Forwarded-Host {host}
+#             header_uri +X-Real-IP {http.request.header.CF-Connecting-IP}
+#         }
+#     }
+#
+#     # API routes
+#     route /api* {
+#         reverse_proxy backend:8000 {
+#             header_uri X-Forwarded-Proto https
+#             header_uri X-Forwarded-Host {host}
+#         }
+#     }
+#
+#     # Frontend
+#     reverse_proxy frontend:3000
+#
+#     # Logging
+#     log {
+#         output stdout
+#         format json
+#     }
+# }
