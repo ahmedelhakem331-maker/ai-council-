@@ -1,0 +1,124 @@
+// Prisma Schema for AI Council Application
+// Supports Users, Agents, Sessions, Messages with proper relationships
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password_hash String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  sessions  Session[]
+
+  @@map("users")
+}
+
+model Agent {
+  id        String   @id
+  name      String
+  role      String
+  emoji     String
+  color     String
+  description String?
+  system_prompt String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  messages  Message[]
+
+  @@map("agents")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  user_id   String
+  trace_id  String   @unique
+  language  String   @default("en")
+  context   Json?
+  status    String   @default("active") // active, completed, failed
+  started_at DateTime @default(now())
+  completed_at DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@index([user_id])
+  @@index([trace_id])
+  @@index([status])
+  @@map("sessions")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  session_id String
+  agent_id  String
+  agent_name String
+  content   String
+  model_used String
+  tokens_used Int      @default(0)
+  latency_ms Int      @default(0)
+  quality_score Float?
+  trace_id  String
+  is_complete Boolean  @default(false)
+  error_message String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  session   Session  @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  agent     Agent    @relation(fields: [agent_id], references: [id], onDelete: Cascade)
+
+  @@index([session_id])
+  @@index([agent_id])
+  @@index([trace_id])
+  @@index([created_at])
+  @@map("messages")
+}
+
+model RequestLog {
+  id        String   @id @default(cuid())
+  trace_id  String   @unique
+  endpoint  String
+  method    String
+  status_code Int
+  execution_time_ms Int
+  user_agent String?
+  ip_address String?
+  created_at DateTime @default(now())
+
+  @@index([trace_id])
+  @@index([endpoint])
+  @@index([created_at])
+  @@map("request_logs")
+}
+
+model SystemMetric {
+  id        String   @id @default(cuid())
+  metric_type String  // latency, token_usage, error_rate, fallback_rate
+  metric_name String
+  metric_value Float
+  trace_id  String?
+  agent_id  String?
+  model     String?
+  created_at DateTime @default(now())
+
+  @@index([metric_type])
+  @@index([agent_id])
+  @@index([created_at])
+  @@map("system_metrics")
+}

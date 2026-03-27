@@ -8,6 +8,11 @@ from datetime import datetime
 from typing import Any, Optional, Dict
 from uuid import uuid4
 import sys
+import time
+
+
+# Track application start time for uptime calculation
+app_start_time = time.time()
 
 
 class JSONFormatter(logging.Formatter):

@@ -15,6 +15,8 @@ from app.ai_cascade import AICascade
 from app.logger import logger, log_with_trace, generate_trace_id, log_stream_complete
 from app.websocket_manager import connection_manager
 from app.config import settings
+from app.database import db
+from app.observability import log_agent_response
 
 router = APIRouter()
 
@@ -128,11 +130,26 @@ async def websocket_endpoint(
                 language=init_msg.language,
             )
 
+            # Create database session
+            try:
+                db_session = await db.create_session(
+                    user_id=user_id,
+                    trace_id=trace_id,
+                    language=init_msg.language,
+                    context=init_msg.context or {}
+                )
+                session_id = db_session.get("id")
+            except Exception as e:
+                logger.warning(f"Failed to create database session: {e}")
+                session_id = None
+
             # Stream response from each agent
             for agent in AGENTS:
                 try:
                     token_count = 0
+                    agent_content = ""
                     start_time = datetime.utcnow()
+                    last_error = None
 
                     # Send agent intro
                     await websocket.send_json({
@@ -177,6 +194,7 @@ async def websocket_endpoint(
 
                         elif model_used == "generic":
                             # Generic fallback response
+                            last_error = content
                             await websocket.send_json({
                                 "type": "error",
                                 "message": content,
@@ -188,6 +206,7 @@ async def websocket_endpoint(
                         # Send token
                         if content:
                             token_count += 1
+                            agent_content += content
                             token_metadata = StreamMetadata(
                                 model=model_used,
                                 recovery=False,
@@ -222,6 +241,23 @@ async def websocket_endpoint(
                         "streamed",
                     )
 
+                    # Log agent response to database
+                    try:
+                        await log_agent_response(
+                            trace_id=trace_id,
+                            agent_id=agent.id,
+                            agent_name=agent.name,
+                            content=agent_content,
+                            model_used="gpt-4o",  # Will be updated by ai_cascade
+                            tokens_used=token_count,
+                            latency_ms=duration,
+                            quality_score=None,  # Can be added by quality gate
+                            session_id=session_id,
+                            error_message=last_error
+                        )
+                    except Exception as log_err:
+                        logger.warning(f"Failed to log agent response: {log_err}")
+
                 except WebSocketDisconnect:
                     log_with_trace(
                         logger,
@@ -254,6 +290,13 @@ async def websocket_endpoint(
                 "trace_id": trace_id,
                 "timestamp": datetime.utcnow().isoformat(),
             })
+
+            # Update database session status
+            try:
+                if session_id:
+                    await db.update_session_status(session_id, "completed")
+            except Exception as e:
+                logger.warning(f"Failed to update session status: {e}")
 
     except WebSocketDisconnect:
         await connection_manager.disconnect(conn_id, user_id)
