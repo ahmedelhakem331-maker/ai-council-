@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import AgentCard from '@/components/AgentCard';
+import { AgentCard } from '@/components/AgentCard';
 import { AGENTS } from '@/lib/agents';
 import { saveSession, generateId } from '@/lib/storage';
 import { copyToClipboard, exportAsText, exportAsPDF } from '@/lib/export';

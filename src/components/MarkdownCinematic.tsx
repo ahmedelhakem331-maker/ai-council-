@@ -137,12 +137,12 @@ export const MarkdownCinematic = memo(
         <ReactMarkdown
           components={{
             code: CodeBlock,
-            h1: ({ children }) => <Heading level={1} children={children} />,
-            h2: ({ children }) => <Heading level={2} children={children} />,
-            h3: ({ children }) => <Heading level={3} children={children} />,
-            h4: ({ children }) => <Heading level={4} children={children} />,
-            h5: ({ children }) => <Heading level={5} children={children} />,
-            h6: ({ children }) => <Heading level={6} children={children} />,
+            h1: ({ children }) => <Heading level={1}>{children}</Heading>,
+            h2: ({ children }) => <Heading level={2}>{children}</Heading>,
+            h3: ({ children }) => <Heading level={3}>{children}</Heading>,
+            h4: ({ children }) => <Heading level={4}>{children}</Heading>,
+            h5: ({ children }) => <Heading level={5}>{children}</Heading>,
+            h6: ({ children }) => <Heading level={6}>{children}</Heading>,
             li: ({ children }) => <ListItem>{children}</ListItem>,
             ul: ({ children }) => <UnorderedList>{children}</UnorderedList>,
             ol: ({ children }) => <OrderedList>{children}</OrderedList>,

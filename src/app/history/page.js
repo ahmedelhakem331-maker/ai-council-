@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getSessions, deleteSession } from '@/lib/storage';
 import { AGENTS } from '@/lib/agents';
-import AgentCard from '@/components/AgentCard';
+import { AgentCard } from '@/components/AgentCard';
 
 export default function HistoryPage() {
   const [sessions, setSessions] = useState([]);

@@ -110,7 +110,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               <h1 className="text-2xl font-bold text-red-300 mb-2">Something went wrong</h1>
 
               <p className="text-red-200/70 text-sm mb-6">
-                The application encountered an unexpected error. We've recorded this incident
+                The application encountered an unexpected error. We&apos;ve recorded this incident
                 and our team will look into it.
               </p>
 
